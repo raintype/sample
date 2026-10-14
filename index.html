@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>바이브 코딩 | 말로 설명하면 앱이 만들어집니다</title>
+<meta name="description" content="바이브 코딩은 만들고 싶은 것을 AI에게 설명하고 결과를 보며 다듬어 가는 개발 방식입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1c1a3a;
+  --ink-2: #4d4b6e;
+  --ink-3: #7c7a9c;
+  --canvas: #f5f4ff;
+  --white: #ffffff;
+  --violet: #5b3df5;
+  --violet-deep: #4328d6;
+  --violet-soft: #e7e3ff;
+  --mint: #12b88e;
+  --mint-soft: #d9f6ec;
+  --line: #dcd9f2;
+  --radius-lg: 28px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --font: "IBM Plex Sans KR", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.22, .8, .24, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--ink);
+  background: var(--canvas);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+img, svg { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { width: min(1160px, 100% - 48px); margin-inline: auto; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { letter-spacing: -0.03em; line-height: 1.25; }
+
+/* 상단 진행 표시 */
+.progress {
+  position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60;
+  background: transparent; pointer-events: none;
+}
+.progress i {
+  display: block; height: 100%; width: 100%;
+  background: var(--violet); transform-origin: left; transform: scaleX(0);
+}
+
+/* 헤더 */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(245, 244, 255, .82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s var(--ease);
+}
+.site-header.scrolled { border-bottom-color: var(--line); }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+.logo-mark {
+  width: 30px; height: 30px; border-radius: 9px; background: var(--violet);
+  display: grid; place-items: center; color: #fff; font-family: var(--mono); font-size: 14px; font-weight: 500;
+}
+.nav-links { display: flex; gap: 32px; font-size: 15px; color: var(--ink-2); }
+.nav-links a { padding: 6px 0; position: relative; transition: color .2s; }
+.nav-links a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--violet); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease);
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-links a:hover::after { transform: scaleX(1); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 52px; padding: 0 28px; border-radius: 999px; border: 2px solid transparent;
+  font-weight: 600; font-size: 16px; letter-spacing: -0.01em;
+  transition: transform .25s var(--ease), background .25s, border-color .25s, color .25s;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--violet); color: #fff; }
+.btn-primary:hover { background: var(--violet-deep); }
+.btn-ghost { border-color: var(--ink); color: var(--ink); background: transparent; }
+.btn-ghost:hover { background: var(--ink); color: #fff; }
+.btn-sm { height: 42px; padding: 0 20px; font-size: 15px; }
+
+/* 히어로 */
+.hero { padding: clamp(48px, 8vw, 104px) 0 clamp(56px, 8vw, 112px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
+.hero h1 { font-size: clamp(40px, 6.2vw, 76px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.15; }
+.hero-lead { margin-top: 28px; font-size: clamp(17px, 1.6vw, 20px); color: var(--ink-2); max-width: 30em; }
+.hero-actions { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* 데모 창 */
+.demo {
+  background: var(--white); border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px -30px rgba(67, 40, 214, .35);
+  overflow: hidden;
+}
+.demo-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--line); background: #faf9ff;
+}
+.demo-tabs { display: flex; gap: 4px; background: var(--violet-soft); padding: 4px; border-radius: 999px; }
+.demo-tabs button {
+  border: 0; background: transparent; padding: 5px 16px; border-radius: 999px;
+  font-size: 14px; font-weight: 500; color: var(--ink-2); transition: background .25s, color .25s;
+}
+.demo-tabs button[aria-selected="true"] { background: var(--white); color: var(--violet-deep); box-shadow: 0 1px 3px rgba(28, 26, 58, .15); }
+.status {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--ink-3);
+  transition: color .3s;
+}
+.status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.status[data-state="building"] { color: var(--violet); }
+.status[data-state="building"]::before { animation: pulse 1s infinite; }
+.status[data-state="done"] { color: var(--mint); }
+@keyframes pulse { 50% { opacity: .25; transform: scale(.7); } }
+
+.prompt-box { padding: 22px 22px 20px; border-bottom: 1px solid var(--line); min-height: 128px; }
+.prompt-label { font-size: 14px; font-weight: 600; color: var(--ink-3); margin-bottom: 8px; }
+.prompt-text { font-size: 17px; line-height: 1.65; min-height: 5.1em; }
+.caret { display: inline-block; width: 2px; height: 1.15em; background: var(--violet); vertical-align: text-bottom; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.stage { padding: 22px; background: var(--canvas); min-height: 340px; position: relative; }
+.stage-view[hidden] { display: none; }
+.app {
+  max-width: 340px; margin-inline: auto; background: var(--white); border-radius: 20px;
+  border: 1px solid var(--line); padding: 22px 20px 18px;
+}
+.app h4 { margin: 0 0 14px; font-size: 20px; letter-spacing: -0.02em; }
+.app ul { list-style: none; margin: 0; padding: 0; }
+.todo-row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 12px 4px; border: 0; background: transparent; text-align: left;
+  border-bottom: 1px solid var(--line); font-size: 16px;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .5s var(--ease), transform .5s var(--ease), color .3s;
+}
+.todo-row.shown { opacity: 1; transform: none; }
+.box {
+  flex: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--ink-3);
+  display: grid; place-items: center; transition: background .2s, border-color .2s;
+}
+.box svg { width: 13px; height: 13px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset .3s var(--ease); }
+.label { position: relative; }
+.label::after {
+  content: ""; position: absolute; left: 0; top: 52%; height: 2px; width: 100%; background: var(--ink-3);
+  transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease);
+}
+.todo-row.done { color: var(--ink-3); }
+.todo-row.done .box { background: var(--mint); border-color: var(--mint); }
+.todo-row.done .box svg { stroke-dashoffset: 0; }
+.todo-row.done .label::after { transform: scaleX(1); }
+.app-foot { margin-top: 14px; font-size: 15px; color: var(--ink-2); opacity: 0; transition: opacity .5s; }
+.app-foot.shown { opacity: 1; }
+.app-foot b { color: var(--violet-deep); }
+.stage-hint { text-align: center; margin-top: 14px; font-size: 14px; color: var(--ink-3); min-height: 1.6em; }
+
+.code-view {
+  margin: 0; font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--ink);
+  background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md);
+  padding: 18px; overflow-x: auto; white-space: pre; min-height: 296px;
+}
+.replay {
+  display: block; margin: 0 auto; padding: 12px 0 18px; border: 0; background: none;
+  font-size: 14px; font-weight: 600; color: var(--violet-deep);
+}
+.replay:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* 공통 섹션 */
+section { padding: clamp(72px, 10vw, 136px) 0; }
+.section-title { font-size: clamp(30px, 4.4vw, 52px); font-weight: 700; letter-spacing: -0.04em; max-width: 16em; }
+.section-lead { margin-top: 20px; color: var(--ink-2); max-width: 36em; font-size: 18px; }
+
+/* 정의 */
+.define { background: var(--ink); color: #fff; }
+.define .section-lead { color: #c9c7e6; }
+.define-top { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 6vw, 88px); align-items: end; }
+.origin { font-size: 15px; color: #a9a6d0; border-left: 3px solid var(--violet); padding-left: 18px; line-height: 1.7; }
+.compare { margin-top: clamp(48px, 7vw, 88px); }
+.compare-head, .compare-row { display: grid; grid-template-columns: 0.7fr 1fr 1.15fr; gap: 24px; align-items: baseline; }
+.compare-head { padding-bottom: 14px; font-size: 15px; font-weight: 600; color: #a9a6d0; }
+.compare-head span:last-child { color: #b7a8ff; }
+.compare-row { padding: 26px 0; border-top: 1px solid rgba(255, 255, 255, .14); }
+.compare-row .what { font-weight: 600; color: #fff; }
+.compare-row .old { color: #a9a6d0; }
+.compare-row .new { font-size: 19px; font-weight: 500; }
+.compare-row .tag { display: none; }
+
+/* 흐름 */
+.flow-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 7vw, 100px); }
+.flow-sticky { position: sticky; top: 120px; align-self: start; }
+.steps { position: relative; padding-left: 56px; }
+.steps::before { content: ""; position: absolute; left: 17px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+.steps-fill { position: absolute; left: 17px; top: 8px; width: 2px; height: 0; background: var(--violet); }
+.step { position: relative; padding: 4px 0 64px; opacity: .38; transition: opacity .5s var(--ease); }
+.step:last-child { padding-bottom: 0; }
+.step.active { opacity: 1; }
+.step-dot {
+  position: absolute; left: -56px; top: 0; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--canvas); border: 2px solid var(--line); display: grid; place-items: center;
+  font-weight: 600; font-size: 15px; color: var(--ink-3); transition: all .4s var(--ease);
+}
+.step.active .step-dot { background: var(--violet); border-color: var(--violet); color: #fff; }
+.step h3 { font-size: 24px; margin-bottom: 8px; }
+.step p { color: var(--ink-2); }
+.step .example {
+  margin-top: 16px; padding: 14px 18px; background: var(--white); border-radius: var(--radius-sm);
+  border: 1px solid var(--line); font-size: 15px; color: var(--ink-2);
+}
+
+/* 맞는 일 / 조심할 일 */
+.fit-grid { margin-top: 56px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+.fit-good { background: var(--mint-soft); border-radius: var(--radius-lg); padding: clamp(28px, 4vw, 44px); }
+.fit-good h3, .fit-care h3 { font-size: 24px; margin-bottom: 20px; }
+.fit-care { padding: clamp(24px, 3vw, 36px) 0 clamp(24px, 3vw, 36px) clamp(24px, 3vw, 40px); border-left: 3px solid var(--violet); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.list li { position: relative; padding-left: 30px; }
+.list li::before { content: ""; position: absolute; left: 0; top: .6em; width: 14px; height: 2px; background: var(--mint); }
+.fit-care .list li::before { background: var(--violet); }
+.list strong { font-weight: 600; }
+.list span { display: block; color: var(--ink-2); font-size: 15px; }
+
+/* 팁 아코디언 */
+.tips { background: var(--white); }
+.tips-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(32px, 7vw, 100px); }
+.acc { border-top: 1px solid var(--line); }
+.acc-item { border-bottom: 1px solid var(--line); }
+.acc-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 24px 0; border: 0; background: none; text-align: left;
+  font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+}
+.acc-icon { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--violet-soft); position: relative; transition: background .3s, transform .4s var(--ease); }
+.acc-icon::before, .acc-icon::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: var(--violet-deep); transform: translate(-50%, -50%); transition: transform .4s var(--ease), background .3s; }
+.acc-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
+.acc-btn[aria-expanded="true"] .acc-icon { background: var(--violet); }
+.acc-btn[aria-expanded="true"] .acc-icon::before, .acc-btn[aria-expanded="true"] .acc-icon::after { background: #fff; }
+.acc-btn[aria-expanded="true"] .acc-icon::after { transform: translate(-50%, -50%) rotate(0deg); }
+.acc-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease); }
+.acc-panel.open { grid-template-rows: 1fr; }
+.acc-panel > div { overflow: hidden; }
+.acc-body { padding: 0 0 26px; color: var(--ink-2); max-width: 34em; }
+.acc-body .bad, .acc-body .good { display: block; margin-top: 12px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 15px; }
+.acc-body .bad { background: #f4f3fb; color: var(--ink-3); }
+.acc-body .good { background: var(--violet-soft); color: var(--ink); }
+
+/* CTA */
+.cta { padding-bottom: clamp(72px, 10vw, 128px); }
+.cta-box {
+  background: var(--violet); color: #fff; border-radius: var(--radius-lg);
+  padding: clamp(36px, 7vw, 88px); display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center;
+}
+.cta-box h2 { font-size: clamp(30px, 4.4vw, 52px); letter-spacing: -0.04em; }
+.cta-box p { margin-top: 18px; color: #e0daff; }
+.sample {
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .28); border-radius: var(--radius-md);
+  padding: 22px;
+}
+.sample q { display: block; quotes: none; font-size: 18px; line-height: 1.7; }
+.sample .btn { margin-top: 18px; background: #fff; color: var(--violet-deep); height: 46px; }
+.sample .btn:hover { background: var(--violet-soft); }
+
+footer { padding: 36px 0 48px; color: var(--ink-3); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+/* 스크롤 등장 */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .8s var(--ease), transform .8s var(--ease); transition-delay: var(--d, 0s); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* 반응형 */
+@media (max-width: 960px) {
+  .hero-grid, .define-top, .flow-grid, .fit-grid, .tips-grid, .cta-box { grid-template-columns: 1fr; }
+  .flow-sticky { position: static; margin-bottom: 40px; }
+  .nav-links { display: none; }
+  .fit-care { padding-left: 24px; }
+}
+@media (max-width: 680px) {
+  body { font-size: 16px; }
+  .wrap { width: min(1160px, 100% - 36px); }
+  .compare-head { display: none; }
+  .compare-row { grid-template-columns: 1fr; gap: 6px; padding: 22px 0; }
+  .compare-row .tag { display: inline; font-size: 13px; font-weight: 600; margin-right: 8px; color: #b7a8ff; }
+  .compare-row .old .tag { color: #a9a6d0; }
+  .demo-bar { flex-wrap: wrap; gap: 10px; }
+  .stage { padding: 16px; }
+  .btn { width: 100%; }
+  .btn-sm { width: auto; }
+  .hero-actions { flex-direction: column; }
+  .steps { padding-left: 50px; }
+  .step-dot { left: -50px; }
+  .acc-btn { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+<header class="site-header" id="header">
+  <div class="wrap nav">
+    <a class="logo" href="#top" aria-label="바이브 코딩 처음으로">
+      <span class="logo-mark" aria-hidden="true">&gt;_</span>
+      바이브 코딩
+    </a>
+    <nav class="nav-links" aria-label="주요 메뉴">
+      <a href="#what">개념</a>
+      <a href="#flow">진행 방식</a>
+      <a href="#fit">활용 범위</a>
+      <a href="#tips">프롬프트 요령</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#start">시작하기</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- 히어로 -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <h1>말로 설명하면<br>앱이 만들어집니다</h1>
+        <p class="hero-lead">바이브 코딩은 코드를 한 줄씩 작성하는 대신 만들고 싶은 것을 AI에게 설명하고 결과를 보며 다듬어 가는 개발 방식입니다.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#start">첫 프롬프트 써 보기</a>
+          <a class="btn btn-ghost" href="#flow">진행 방식 보기</a>
+        </div>
+      </div>
+
+      <div class="demo" aria-label="바이브 코딩 시연">
+        <div class="demo-bar">
+          <div class="demo-tabs" role="tablist" aria-label="결과 보기 방식">
+            <button role="tab" id="tabResult" aria-selected="true" aria-controls="viewResult">결과</button>
+            <button role="tab" id="tabCode" aria-selected="false" aria-controls="viewCode">코드</button>
+          </div>
+          <span class="status" id="status" data-state="idle" aria-live="polite">대기 중</span>
+        </div>
+        <div class="prompt-box">
+          <div class="prompt-label">내가 쓴 프롬프트</div>
+          <p class="prompt-text"><span id="promptText"></span><span class="caret" id="caret" aria-hidden="true"></span></p>
+        </div>
+        <div class="stage">
+          <div class="stage-view" id="viewResult" role="tabpanel" aria-labelledby="tabResult">
+            <div class="app">
+              <h4>오늘 할 일</h4>
+              <ul id="todoList"></ul>
+              <p class="app-foot" id="appFoot">남은 할 일 <b id="leftCount">3</b>개</p>
+            </div>
+            <p class="stage-hint" id="stageHint"></p>
+          </div>
+          <pre class="code-view" id="viewCode" role="tabpanel" aria-labelledby="tabCode" hidden></pre>
+        </div>
+        <button class="replay" id="replay" type="button">처음부터 다시 보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 개념 -->
+  <section class="define" id="what">
+    <div class="wrap">
+      <div class="define-top">
+        <div class="reveal">
+          <h2 class="section-title">문법보다 의도를 먼저 말합니다</h2>
+          <p class="section-lead">개발자는 구현 방법을 일일이 지시하는 대신 원하는 결과와 느낌을 설명합니다. AI가 초안을 만들고 사람은 써 보면서 방향을 바로잡습니다.</p>
+        </div>
+        <p class="origin reveal" style="--d:.12s">‘바이브 코딩’이라는 표현은 2025년 초 안드레이 카파시가 소개하면서 널리 퍼졌습니다. 분위기에 맡기듯 AI와 대화하며 만든다는 뜻을 담고 있습니다.</p>
+      </div>
+
+      <div class="compare">
+        <div class="compare-head reveal" aria-hidden="true">
+          <span></span><span>기존 개발</span><span>바이브 코딩</span>
+        </div>
+        <div class="compare-row reveal">
+          <span class="what">시작</span>
+          <span class="old"><span class="tag">기존</span>언어와 프레임워크를 고릅니다</span>
+          <span class="new"><span class="tag">바이브</span>만들고 싶은 장면을 문장으로 씁니다</span>
+        </div>
+        <div class="compare-row reveal">
+          <span class="what">진행</span>
+          <span class="old"><span class="tag">기존</span>설계한 뒤 직접 구현합니다</span>
+          <span class="new"><span class="tag">바이브</span>초안을 받고 써 보며 고칩니다</span>
+        </div>
+        <div class="compare-row reveal">
+          <span class="what">수정</span>
+          <span class="old"><span class="tag">기존</span>코드를 찾아 직접 바꿉니다</span>
+          <span class="new"><span class="tag">바이브</span>느낌을 말하면 AI가 바꿉니다</span>
+        </div>
+        <div class="compare-row reveal">
+          <span class="what">사람의 역할</span>
+          <span class="old"><span class="tag">기존</span>코드를 쓰는 사람</span>
+          <span class="new"><span class="tag">바이브</span>방향을 정하고 결과를 검토하는 사람</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 진행 방식 -->
+  <section id="flow">
+    <div class="wrap flow-grid">
+      <div class="flow-sticky reveal">
+        <h2 class="section-title">네 걸음이 계속 이어집니다</h2>
+        <p class="section-lead">한 번에 완성하려 하지 않습니다. 작은 결과를 빨리 받아 보고 마음에 들 때까지 반복합니다.</p>
+      </div>
+      <div class="steps" id="steps">
+        <div class="steps-fill" id="stepsFill"></div>
+        <div class="step active">
+          <span class="step-dot">1</span>
+          <h3>말로 설명합니다</h3>
+          <p>누가 쓰고 무엇을 할 수 있어야 하는지 평소 말투로 적습니다.</p>
+          <div class="example">“고객 문의를 날짜별로 모아서 보여 주는 화면이 필요해요.”</div>
+        </div>
+        <div class="step">
+          <span class="step-dot">2</span>
+          <h3>AI가 초안을 만듭니다</h3>
+          <p>화면과 동작이 담긴 첫 버전이 몇 초 안에 나타납니다. 완벽하지 않아도 괜찮습니다.</p>
+        </div>
+        <div class="step">
+          <span class="step-dot">3</span>
+          <h3>직접 써 봅니다</h3>
+          <p>눌러 보고 입력해 보며 어색한 부분을 찾습니다. 코드를 읽지 않아도 판단할 수 있는 것이 많습니다.</p>
+        </div>
+        <div class="step">
+          <span class="step-dot">4</span>
+          <h3>말로 고치고 반복합니다</h3>
+          <p>무엇이 불편한지 구체적으로 전하면 AI가 수정합니다. 마음에 들면 그 상태를 저장하고 다음 기능으로 넘어갑니다.</p>
+          <div class="example">“날짜 필터를 위쪽에 두고 오래된 문의는 회색으로 보여 주세요.”</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 활용 범위 -->
+  <section id="fit" style="padding-top:0">
+    <div class="wrap">
+      <h2 class="section-title reveal">잘 맞는 일과 사람이 꼭 확인할 일</h2>
+      <div class="fit-grid">
+        <div class="fit-good reveal">
+          <h3>빠르게 만들수록 좋은 일</h3>
+          <ul class="list">
+            <li><strong>아이디어 검증용 시제품</strong><span>회의 전에 화면을 보여 주고 의견을 받을 수 있습니다.</span></li>
+            <li><strong>내부 도구와 자동화 스크립트</strong><span>반복 업무를 줄이는 작은 도구에 적합합니다.</span></li>
+            <li><strong>학습과 실험</strong><span>새 언어나 라이브러리를 결과물로 먼저 접해 볼 수 있습니다.</span></li>
+          </ul>
+        </div>
+        <div class="fit-care reveal" style="--d:.12s">
+          <h3>반드시 사람이 검토할 일</h3>
+          <ul class="list">
+            <li><strong>로그인과 결제 그리고 개인정보</strong><span>보안 문제는 눈에 보이지 않으므로 전문가의 점검이 필요합니다.</span></li>
+            <li><strong>오래 유지할 서비스의 구조</strong><span>생성된 코드를 이해하지 못한 채 쌓으면 수정 비용이 커집니다.</span></li>
+            <li><strong>테스트와 배포</strong><span>동작하는 것처럼 보이는 결과가 실제로 옳은지 확인해야 합니다.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 프롬프트 요령 -->
+  <section class="tips" id="tips">
+    <div class="wrap tips-grid">
+      <div class="reveal">
+        <h2 class="section-title">좋은 프롬프트는 구체적입니다</h2>
+        <p class="section-lead">항목을 눌러 예시를 확인해 보세요.</p>
+      </div>
+      <div class="acc reveal" style="--d:.1s" id="acc">
+        <div class="acc-item">
+          <h3><button class="acc-btn" type="button" aria-expanded="true" aria-controls="p1"><span>목적과 사용자를 먼저 알립니다</span><span class="acc-icon" aria-hidden="true"></span></button></h3>
+          <div class="acc-panel open" id="p1"><div><div class="acc-body">누가 어떤 상황에서 쓰는지 알려 주면 AI가 화면 구성과 문구를 훨씬 정확하게 고릅니다.
+            <span class="bad">할 일 앱 만들어줘</span>
+            <span class="good">출근길 지하철에서 한 손으로 쓰는 할 일 앱을 만들어줘</span></div></div></div>
+        </div>
+        <div class="acc-item">
+          <h3><button class="acc-btn" type="button" aria-expanded="false" aria-controls="p2"><span>작게 쪼개서 요청합니다</span><span class="acc-icon" aria-hidden="true"></span></button></h3>
+          <div class="acc-panel" id="p2"><div><div class="acc-body">기능을 한꺼번에 요청하면 오류를 찾기 어렵습니다. 하나를 완성한 뒤 다음 기능을 이어 붙이세요.
+            <span class="bad">로그인과 결제와 관리자 화면까지 한 번에 만들어줘</span>
+            <span class="good">먼저 상품 목록 화면만 만들어줘. 확인한 뒤 장바구니를 추가할게</span></div></div></div>
+        </div>
+        <div class="acc-item">
+          <h3><button class="acc-btn" type="button" aria-expanded="false" aria-controls="p3"><span>예시와 제약 조건을 줍니다</span><span class="acc-icon" aria-hidden="true"></span></button></h3>
+          <div class="acc-panel" id="p3"><div><div class="acc-body">분위기와 사용할 기술 그리고 피해야 할 것을 함께 적으면 결과가 안정됩니다.
+            <span class="bad">예쁘게 해줘</span>
+            <span class="good">여백이 넓고 파란 계열 색을 쓰는 화면으로 만들어줘. 외부 라이브러리는 쓰지 말아줘</span></div></div></div>
+        </div>
+        <div class="acc-item">
+          <h3><button class="acc-btn" type="button" aria-expanded="false" aria-controls="p4"><span>결과를 읽고 이유를 물어봅니다</span><span class="acc-icon" aria-hidden="true"></span></button></h3>
+          <div class="acc-panel" id="p4"><div><div class="acc-body">이해하지 못한 코드는 그대로 두지 말고 설명을 요청하세요. 이해한 만큼 더 정확하게 고칠 수 있습니다.
+            <span class="bad">일단 돌아가니까 그대로 쓸게</span>
+            <span class="good">이 함수가 하는 일을 초보자에게 설명하듯 알려줘. 위험한 부분이 있으면 알려줘</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" id="start">
+    <div class="wrap">
+      <div class="cta-box reveal">
+        <div>
+          <h2>지금 첫 프롬프트를 써 보세요</h2>
+          <p>가장 불편했던 일 하나를 떠올리고 그것을 해결하는 작은 도구를 설명해 보면 됩니다. 아래 문장으로 시작해도 좋습니다.</p>
+        </div>
+        <div class="sample">
+          <q id="samplePrompt">매일 마신 물의 양을 기록하는 웹 화면을 만들어줘. 버튼을 누르면 200ml씩 늘어나고 하루 목표를 넘으면 축하 문구가 나왔으면 좋겠어.</q>
+          <button class="btn" id="copyBtn" type="button">문장 복사하기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>바이브 코딩 소개 페이지</span>
+    <span>생성된 코드는 사용 전에 반드시 검토하세요.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* 스크롤 진행 표시줄과 헤더 */
+  var bar = $('progressBar'), header = $('header');
+  function onScroll() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var p = max > 0 ? window.scrollY / max : 0;
+    bar.style.transform = 'scaleX(' + Math.min(1, Math.max(0, p)) + ')';
+    header.classList.toggle('scrolled', window.scrollY > 8);
+    updateSteps();
+  }
+
+  /* 등장 효과 */
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* 진행 방식 : 스크롤에 따라 단계 활성화 */
+  var stepsBox = $('steps'), fill = $('stepsFill');
+  var stepEls = Array.prototype.slice.call(stepsBox.querySelectorAll('.step'));
+  function updateSteps() {
+    var rect = stepsBox.getBoundingClientRect();
+    var mid = window.innerHeight * 0.55;
+    var last = 0;
+    stepEls.forEach(function (s, i) {
+      var r = s.getBoundingClientRect();
+      var on = r.top < mid;
+      s.classList.toggle('active', on || i === 0);
+      if (on) last = i;
+    });
+    var first = stepEls[0].querySelector('.step-dot').getBoundingClientRect();
+    var current = stepEls[last].querySelector('.step-dot').getBoundingClientRect();
+    var h = Math.max(0, current.top - first.top + 18);
+    if (last === stepEls.length - 1 && rect.bottom < mid) h = rect.height - 16;
+    fill.style.height = h + 'px';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+
+  /* 아코디언 */
+  var accBtns = document.querySelectorAll('.acc-btn');
+  accBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      $(btn.getAttribute('aria-controls')).classList.toggle('open', !open);
+    });
+  });
+
+  /* 문장 복사 */
+  var copyBtn = $('copyBtn');
+  copyBtn.addEventListener('click', function () {
+    var text = $('samplePrompt').textContent.trim();
+    function done() {
+      copyBtn.textContent = '복사했습니다';
+      setTimeout(function () { copyBtn.textContent = '문장 복사하기'; }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else { fallback(); }
+    function fallback() {
+      var t = document.createElement('textarea');
+      t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(t);
+    }
+  });
+
+  /* 히어로 데모 */
+  var PROMPT = '할 일 목록 앱을 만들어줘. 항목을 누르면 완료 표시가 되고 글자에 줄이 그어졌으면 좋겠어. 아래에는 남은 할 일 개수가 보였으면 해.';
+  var TODOS = ['랜딩페이지 문구 다듬기', '팀 회의 자료 정리하기', '저녁에 가볍게 달리기'];
+  var CODE = [
+    '<ul id="todo">',
+    '  <li><button class="row">랜딩페이지 문구 다듬기</button></li>',
+    '  <li><button class="row">팀 회의 자료 정리하기</button></li>',
+    '  <li><button class="row">저녁에 가볍게 달리기</button></li>',
+    '</ul>',
+    '<p>남은 할 일 <b id="left">3</b>개</p>',
+    '',
+    '<script>',
+    '  // 누르면 완료 표시와 취소선을 토글하고',
+    '  // 남은 개수를 다시 계산합니다.',
+    '  document.querySelectorAll(".row").forEach(row => {',
+    '    row.addEventListener("click", () => {',
+    '      row.classList.toggle("done");',
+    '      left.textContent =',
+    '        document.querySelectorAll(".row:not(.done)").length;',
+    '    });',
+    '  });',
+    '<\/script>'
+  ].join('\n');
+
+  var promptText = $('promptText'), caret = $('caret'), statusEl = $('status');
+  var list = $('todoList'), foot = $('appFoot'), leftCount = $('leftCount'), hint = $('stageHint');
+  var tabResult = $('tabResult'), tabCode = $('tabCode'), viewResult = $('viewResult'), viewCode = $('viewCode');
+  var runId = 0;
+
+  viewCode.textContent = CODE;
+
+  function setStatus(state, text) { statusEl.dataset.state = state; statusEl.textContent = text; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  function buildList() {
+    list.innerHTML = '';
+    TODOS.forEach(function (t) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'todo-row';
+      b.setAttribute('aria-pressed', 'false');
+      b.innerHTML = '<span class="box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span><span class="label"></span>';
+      b.querySelector('.label').textContent = t;
+      b.addEventListener('click', function () {
+        var d = b.classList.toggle('done');
+        b.setAttribute('aria-pressed', String(d));
+        leftCount.textContent = list.querySelectorAll('.todo-row:not(.done)').length;
+      });
+      li.appendChild(b); list.appendChild(li);
+    });
+    leftCount.textContent = TODOS.length;
+    foot.classList.remove('shown');
+  }
+
+  function showTab(which) {
+    var result = which === 'result';
+    tabResult.setAttribute('aria-selected', String(result));
+    tabCode.setAttribute('aria-selected', String(!result));
+    viewResult.hidden = !result;
+    viewCode.hidden = result;
+  }
+  tabResult.addEventListener('click', function () { showTab('result'); });
+  tabCode.addEventListener('click', function () { showTab('code'); });
+
+  async function play() {
+    var id = ++runId;
+    showTab('result');
+    buildList();
+    hint.textContent = '';
+    promptText.textContent = '';
+    caret.style.display = '';
+
+    if (reduceMotion) {
+      promptText.textContent = PROMPT;
+      caret.style.display = 'none';
+      list.querySelectorAll('.todo-row').forEach(function (r) { r.classList.add('shown'); });
+      foot.classList.add('shown');
+      setStatus('done', '완성');
+      hint.textContent = '항목을 눌러 직접 사용해 보세요.';
+      return;
+    }
+
+    setStatus('idle', '프롬프트 입력 중');
+    for (var i = 1; i <= PROMPT.length; i++) {
+      if (id !== runId) return;
+      promptText.textContent = PROMPT.slice(0, i);
+      await sleep(PROMPT[i - 1] === ' ' ? 38 : 24);
+    }
+    caret.style.display = 'none';
+    await sleep(350);
+    if (id !== runId) return;
+
+    setStatus('building', '만드는 중');
+    var rows = list.querySelectorAll('.todo-row');
+    for (var j = 0; j < rows.length; j++) {
+      await sleep(650);
+      if (id !== runId) return;
+      rows[j].classList.add('shown');
+    }
+    await sleep(500);
+    if (id !== runId) return;
+    foot.classList.add('shown');
+    setStatus('done', '완성');
+    hint.textContent = '항목을 눌러 직접 사용해 보세요.';
+  }
+
+  $('replay').addEventListener('click', play);
+
+  /* 시작 */
+  onScroll();
+  setTimeout(play, 500);
+})();
+</script>
+</body>
+</html>
